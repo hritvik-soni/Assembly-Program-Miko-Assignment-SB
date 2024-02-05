@@ -1,0 +1,41 @@
+
+version: '3.8'
+
+services:
+  # Spring Boot Application
+  spring-boot-app:
+    image: miko-assignment-sb-docker:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis-server
+    restart: always
+    container_name:  miko-assignment-sb
+
+  # Redis Server
+  redis-server:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+    restart: always
+    volumes:
+      - redis-data:/data
+    container_name: redis-server-container
+
+  # Redis Insight
+  redis-insight:
+    image: "redislabs/redisinsight:latest"
+    ports:
+      - "8001:8001"
+    environment:
+      - REDIS_URI=redis://redis-server:6379
+    depends_on:
+      - redis-server
+    restart: always
+    volumes:
+      - redis-insight-data:/db
+    container_name: redis-insight-container
+
+volumes:
+  redis-data:
+  redis-insight-data:
