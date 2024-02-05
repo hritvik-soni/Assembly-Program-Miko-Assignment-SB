@@ -7,10 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -47,29 +44,29 @@ public class AssemblyService {
         log.info("Program execution started : {}", program);
 
         for (Map.Entry<String, String> entry : program.entrySet()) {
-            String key = entry.getKey().toUpperCase();
+
             String value = entry.getValue().toUpperCase();
 
             String[] values = value.split("[\\s,#]+");
 
-            if (values.length < 1 || values.length > 2) {
-                log.warn("Invalid number of arguments");
+            if (values.length < 2 || values.length > 3) {
+                log.warn("Invalid number of arguments {}", Arrays.asList(values));
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failure");
             }
 
-            switch (key) {
+            switch (values[0]) {
                 case "MV":
-                    if (handleMvOperation(values[0], values[1]).equals("Failure")) {
+                    if (handleMvOperation(values[1], values[2]).equals("Failure")) {
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failure");
                     }
                     break;
                 case "ADD":
-                    if (handleAddOperation(values[0], values[1]).equals("Failure")) {
+                    if (handleAddOperation(values[1], values[2]).equals("Failure")) {
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failure");
                     }
                     break;
                 case "SHOW":
-                    if (handleShowOperation(values[0]).equals("Failure")) {
+                    if (handleShowOperation(values[1]).equals("Failure")) {
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failure");
                     }
                     break;
@@ -93,7 +90,9 @@ public class AssemblyService {
         if (value.matches("REG[1-9]\\d*")) {
             if (checkKey(value)) {
                 log.info("Register found {}", value);
-                responseList.add("Key: " + value + ", Value: " + getResult(value));
+                if(!responseList.contains(value)){
+                 responseList.add("Key: " + value + ", Value: " + getResult(value));
+                }
                 return "Success";
             } else {
                 log.warn("Register does not exist {}", value);
@@ -108,7 +107,9 @@ public class AssemblyService {
             if (keys != null) {
                 for (String key : keys) {
                     String keyValue = redisTemplate.opsForValue().get(key);
+                    if(!responseList.contains(key)){
                     responseList.add("Key: " + key + ", Value: " + keyValue);
+                    }
                 }
             }
             return "Success";
@@ -147,7 +148,7 @@ public class AssemblyService {
 
               if(valueIsValid(registerOrValue)) {
                   saveResult(register, String.valueOf(Integer.parseInt(getResult(register)) + Integer.parseInt(registerOrValue)));
-                  log.info("Register {} is updated with value {}", register, Integer.parseInt(getResult(register)) + Integer.parseInt(registerOrValue));
+                  log.info("Register {} is updated with value {}", register, getResult(register));
                   return "Success";
 
               }else {
