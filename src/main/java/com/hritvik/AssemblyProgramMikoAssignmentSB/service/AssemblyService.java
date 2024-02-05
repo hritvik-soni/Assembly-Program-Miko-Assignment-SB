@@ -33,6 +33,7 @@ public class AssemblyService {
     }
 
     private final List<String> responseList = new ArrayList<>();
+
     public ResponseEntity<?> executeProgram(Map<String, String> program) {
 
         // Check if program is empty
@@ -90,8 +91,8 @@ public class AssemblyService {
         if (value.matches("REG[1-9]\\d*")) {
             if (checkKey(value)) {
                 log.info("Register found {}", value);
-                if(!responseList.contains(value)){
-                 responseList.add("Key: " + value + ", Value: " + getResult(value));
+                if (!responseList.contains(value)) {
+                    responseList.add("Key: " + value + ", Value: " + getResult(value));
                 }
                 return "Success";
             } else {
@@ -99,84 +100,80 @@ public class AssemblyService {
                 return "Failure";
             }
 
-        }
-        else if (value.matches("REG")) {
+        } else if (value.matches("REG")) {
             log.info(" printing All registers");
             Set<String> keys = redisTemplate.keys("*");
 
             if (keys != null) {
                 for (String key : keys) {
                     String keyValue = redisTemplate.opsForValue().get(key);
-                    if(!responseList.contains(key)){
-                    responseList.add("Key: " + key + ", Value: " + keyValue);
+                    if (!responseList.contains(key)) {
+                        responseList.add("Key: " + key + ", Value: " + keyValue);
                     }
                 }
             }
             return "Success";
         }
-           log.warn("Invalid register {}", value);
-            return "Failure";
+        log.warn("Invalid register {}", value);
+        return "Failure";
 
     }
 
     private String handleAddOperation(String register, String registerOrValue) {
 
         if (BothAreRegOrNot(List.of(register, registerOrValue))) {
-            if(BothRegAreSame(register, registerOrValue)) {
+            if (BothRegAreSame(register, registerOrValue)) {
                 log.warn("Both registers are same {} - {}", register, registerOrValue);
                 return "Failure";
             }
-           if(checkKey(register)) {
-               if(checkKey(registerOrValue)) {
-                   int value = Integer.parseInt(getResult(registerOrValue));
-                   int registerValue = Integer.parseInt(getResult(register));
-                   saveResult(register, String.valueOf(registerValue + value));
-                   log.info("Register {} is updated with value {}", register, registerValue + value);
-                   return "Success";
-               }
-               else {
-                   log.warn("Register 2 does not exist {}", registerOrValue);
-                   return "Failure";
-               }
-           }else {
-               log.warn("Register 1 does not exist {}", register);
-               return "Failure";
-           }
-        }
-        else  {
-           if (register.matches("REG[1-9]\\d*")) {
+            if (checkKey(register)) {
+                if (checkKey(registerOrValue)) {
+                    int value = Integer.parseInt(getResult(registerOrValue));
+                    int registerValue = Integer.parseInt(getResult(register));
+                    saveResult(register, String.valueOf(registerValue + value));
+                    log.info("Register {} is updated with value {}", register, registerValue + value);
+                    return "Success";
+                } else {
+                    log.warn("Register 2 does not exist {}", registerOrValue);
+                    return "Failure";
+                }
+            } else {
+                log.warn("Register 1 does not exist {}", register);
+                return "Failure";
+            }
+        } else {
+            if (register.matches("REG[1-9]\\d*")) {
 
-              if(valueIsValid(registerOrValue)) {
-                  saveResult(register, String.valueOf(Integer.parseInt(getResult(register)) + Integer.parseInt(registerOrValue)));
-                  log.info("Register {} is updated with value {}", register, getResult(register));
-                  return "Success";
+                if (valueIsValid(registerOrValue)) {
+                    saveResult(register,
+                            String.valueOf(Integer.parseInt(getResult(register)) + Integer.parseInt(registerOrValue)));
+                    log.info("Register {} is updated with value {}", register, getResult(register));
+                    return "Success";
 
-              }else {
-                  log.warn("Invalid value {}", registerOrValue);
-                  return "Failure";
+                } else {
+                    log.warn("Invalid value {}", registerOrValue);
+                    return "Failure";
 
-              }
-           }
-           else {
-               log.warn("Invalid register {}", register);
-               return "Failure";
-           }
+                }
+            } else {
+                log.warn("Invalid register {}", register);
+                return "Failure";
+            }
 
         }
 
     }
-
 
     private String handleMvOperation(String register, String value) {
         if (BothAreRegOrNot(List.of(register, value))) {
             log.warn("Both are registers we need 1 reg and 1 value for MV operation {} - {}", register, value);
             return "Failure";
         }
-        if(!register.matches("REG[1-9]\\d*")) {
+        if (!register.matches("REG[1-9]\\d*")) {
             log.warn("Invalid register {}", register);
-                return "Failure";
+            return "Failure";
         }
-        if(!valueIsValid(value)) {
+        if (!valueIsValid(value)) {
             log.warn("Invalid value {}", value);
             return "Failure";
         }
@@ -185,8 +182,8 @@ public class AssemblyService {
         } else {
             log.info("Register does not exist, creating new register{} - {}", register, value);
         }
-         saveResult(register, value);
-         return "Success";
+        saveResult(register, value);
+        return "Success";
     }
 
     private boolean BothAreRegOrNot(List<String> values) {
@@ -207,11 +204,4 @@ public class AssemblyService {
         return num >= 0;
     }
 
-
 }
-
-
-
-
-
-
